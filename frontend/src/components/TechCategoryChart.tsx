@@ -1,13 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { TrendingUp } from "lucide-react"
+
 import { Pie, PieChart, Legend, Tooltip } from "recharts"
 
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "./ui/card"
@@ -130,11 +129,11 @@ export function TechCategoryChart({ radarData }: TechCategoryChartProps) {
       <CardHeader className="items-center pb-0">
         <CardTitle className="text-xl text-white">Distribution by Quadrant</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <div className="relative">
+      <CardContent className="flex-1 pb-0 pt-2">
+        <div className="relative h-full">
           <ChartContainer
             config={chartConfig}
-            className="mx-auto h-[420px]"
+            className="mx-auto h-full w-full"
           >
             <PieChart>
               <Tooltip 
@@ -144,17 +143,21 @@ export function TechCategoryChart({ radarData }: TechCategoryChartProps) {
                 data={chartData}
                 dataKey="count"
                 nameKey="category"
-                innerRadius={80}
+                innerRadius={100}
+                outerRadius={160}
                 strokeWidth={2}
                 label={renderCustomLabel}
                 labelLine={false}
               />
-              <Legend content={<ChartLegendContent />} />
+              <Legend 
+                content={<ChartLegendContent />} 
+                wrapperStyle={{ paddingTop: '30px' }}
+              />
             </PieChart>
           </ChartContainer>
           
-          {/* Center text overlay */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {/* Center text overlay - positioned to account for legend */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ marginBottom: '60px' }}>
             <div className="text-center">
               <div className="text-3xl font-bold text-white">
                 {totalTechnologies}
@@ -166,14 +169,6 @@ export function TechCategoryChart({ radarData }: TechCategoryChartProps) {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium text-white">
-          Real-time Analysis <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-neutral-400 leading-none text-xs">
-          Distribution across technology categories
-        </div>
-      </CardFooter>
     </Card>
   )
 }

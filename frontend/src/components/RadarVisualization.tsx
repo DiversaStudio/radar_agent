@@ -221,8 +221,8 @@ export const RadarVisualization: React.FC<RadarVisualizationProps> = ({
           <div 
             className="absolute z-10 bg-neutral-800 border border-neutral-600 rounded-lg p-3 shadow-lg max-w-xs"
             style={{ 
-              left: tooltip.x + 10, 
-              top: tooltip.y - 10,
+              left: tooltip.x + 1.5, 
+              top: tooltip.y - 1.5,
               transform: tooltip.x > 400 ? 'translateX(-100%)' : 'none'
             }}
           >
