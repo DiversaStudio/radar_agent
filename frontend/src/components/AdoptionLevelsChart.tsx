@@ -1,13 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { TrendingUp } from "lucide-react"
+
 import { Bar, BarChart, CartesianGrid, XAxis, Legend, Tooltip, LabelList } from "recharts"
 
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "./ui/card"
@@ -120,8 +119,8 @@ export function AdoptionLevelsChart({ radarData }: AdoptionLevelsChartProps) {
       <CardHeader className="flex-shrink-0">
         <CardTitle className="text-xl text-white">Distribution by Maturity</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1">
-        <ChartContainer config={chartConfig} className="h-[420px]">
+      <CardContent className="flex-1 pb-2">
+        <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart data={chartData}>
             <CartesianGrid vertical={false} stroke="#374151" />
             <XAxis
@@ -136,7 +135,10 @@ export function AdoptionLevelsChart({ radarData }: AdoptionLevelsChartProps) {
               content={<ChartTooltipContent />}
               cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
             />
-            <Legend content={<ChartLegendContent />} />
+            <Legend 
+              content={<ChartLegendContent />} 
+              wrapperStyle={{ paddingTop: '15px' }}
+            />
             <Bar
               dataKey="techniques"
               stackId="a"
@@ -172,14 +174,6 @@ export function AdoptionLevelsChart({ radarData }: AdoptionLevelsChartProps) {
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium text-white">
-          Technology Domains by Maturity Level <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-neutral-400 leading-none text-xs">
-          Distribution showing technology quadrants across adoption levels
-        </div>
-      </CardFooter>
     </Card>
   )
 }

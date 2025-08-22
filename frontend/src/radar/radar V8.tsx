@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 
 interface TechRadarProps {
-  radarData: any | null;
-  isLoading?: boolean;
+  radarData: any | null
+  isLoading?: boolean
 }
 
 interface RadarItem {
@@ -150,7 +150,6 @@ const Tooltip = memo(({ tooltip }: { tooltip: TooltipState }) => {
 
 Tooltip.displayName = "Tooltip"
 
-// Memoized technology dropdown component
 const TechDropdown = memo(
   ({
     processedData,
@@ -161,9 +160,24 @@ const TechDropdown = memo(
     selectedItem: RadarItem | null
     onTechSelect: (item: RadarItem) => void
   }) => {
+    const ringPriority = { Adopt: 0, Trial: 1, Assess: 2, Hold: 3 }
+
+    const sortedData = useMemo(() => {
+      return [...processedData].sort((a, b) => {
+        const ringA = ringPriority[a.ring as keyof typeof ringPriority] ?? 999
+        const ringB = ringPriority[b.ring as keyof typeof ringPriority] ?? 999
+
+        if (ringA !== ringB) {
+          return ringA - ringB
+        }
+
+        return a.name.localeCompare(b.name)
+      })
+    }, [processedData])
+
     const handleValueChange = (value: string) => {
-      const techId = parseInt(value)
-      const tech = processedData.find(item => item.id === techId)
+      const techId = Number.parseInt(value)
+      const tech = processedData.find((item) => item.id === techId)
       if (tech) {
         onTechSelect(tech)
       }
@@ -177,22 +191,15 @@ const TechDropdown = memo(
             <SelectValue placeholder="Choose a technology..." className="text-white" />
           </SelectTrigger>
           <SelectContent className="bg-black border-neutral-600 text-white max-h-60">
-            {processedData.map((tech) => (
-              <SelectItem 
-                key={tech.id} 
+            {sortedData.map((tech) => (
+              <SelectItem
+                key={tech.id}
                 value={tech.id.toString()}
                 className="cursor-pointer hover:bg-neutral-800 focus:bg-neutral-800 data-[highlighted]:bg-neutral-800 text-white hover:text-white focus:text-white data-[highlighted]:text-white"
               >
                 <div className="flex justify-between items-center w-full">
                   <span className="truncate mr-2 text-white">{tech.name}</span>
-                  <Badge 
-                    variant="outline" 
-                    className="text-xs shrink-0"
-                    style={{
-                      color: ENHANCED_COLORS.rings[tech.ring as keyof typeof ENHANCED_COLORS.rings]?.color || "#6b7280",
-                      borderColor: ENHANCED_COLORS.rings[tech.ring as keyof typeof ENHANCED_COLORS.rings]?.color || "#6b7280",
-                    }}
-                  >
+                  <Badge variant="outline" className="text-xs shrink-0 text-white border-white">
                     {tech.ring}
                   </Badge>
                 </div>
@@ -206,80 +213,6 @@ const TechDropdown = memo(
 )
 
 TechDropdown.displayName = "TechDropdown"
-
-// Memoized sidebar component
-const Sidebar = memo(
-  ({
-    selectedItem,
-    onClose,
-  }: {
-    selectedItem: RadarItem | null
-    onClose: () => void
-  }) => {
-    if (!selectedItem) return null
-
-    const quadrantColors = ENHANCED_COLORS.quadrants[selectedItem.quadrant as keyof typeof ENHANCED_COLORS.quadrants]
-
-    return (
-      <div className="space-y-4 h-full flex flex-col">
-        <div className="p-4 bg-black rounded-lg border border-neutral-700 flex-shrink-0">
-          <h3 className="text-lg font-semibold mb-4 text-white">Selected Technology</h3>
-          <div className="space-y-8">
-            <div>
-              <h3 className="font-bold text-lg text-white">{selectedItem.name}</h3>
-              <div className="flex gap-2 mt-2 flex-wrap">
-                <Badge
-                  variant="outline"
-                  style={{
-                    color: quadrantColors?.primary,
-                    borderColor: quadrantColors?.primary,
-                  }}
-                >
-                  {selectedItem.quadrant}
-                </Badge>
-                <Badge variant="outline" className="text-white border-gray-500">
-                  {selectedItem.ring}
-                </Badge>
-                <Badge variant="outline" className="text-white border-gray-500">
-                  Score: {selectedItem.score}/10
-                </Badge>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm text-gray-300 mb-2">Description</h4>
-              <p className="text-sm text-gray-200 leading-relaxed">{selectedItem.description}</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-sm text-gray-300 mb-2">Analysis</h4>
-              <p className="text-sm text-gray-200 leading-relaxed">{selectedItem.rationale}</p>
-            </div>
-            {selectedItem.source_url && (
-              <div>
-                <h4 className="font-semibold text-sm text-gray-300 mb-2">Source</h4>
-                <a
-                  href={selectedItem.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-400 hover:text-blue-300 underline transition-colors"
-                >
-                  View original source →
-                </a>
-              </div>
-            )}
-            <button
-              onClick={onClose}
-              className="w-full mt-8 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
-            >
-              Close Details
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  },
-)
-
-Sidebar.displayName = "Sidebar"
 
 const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoading = false }) => {
   const [radarData, setRadarData] = useState<any>(propRadarData)
@@ -315,7 +248,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
     () => [
       {
         name: "Adopt",
-        altName: "ADOPT", 
+        altName: "ADOPT",
         radius: maxRadius * 0.25,
       },
       {
@@ -324,7 +257,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
         radius: maxRadius * 0.45,
       },
       {
-        name: "Assess", 
+        name: "Assess",
         altName: "ASSESS",
         radius: maxRadius * 0.7,
       },
@@ -364,26 +297,26 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
   // Enhanced quadrant configuration with key mapping for data compatibility
   const quadrants = useMemo(
     () => [
-      { 
-        name: "Techniques", 
+      {
+        name: "Techniques",
         key: "techniques",
-        startAngle: 180, 
-        endAngle: 270, 
-        ...ENHANCED_COLORS.quadrants.Techniques 
+        startAngle: 180,
+        endAngle: 270,
+        ...ENHANCED_COLORS.quadrants.Techniques,
       },
-      { 
-        name: "Tools", 
+      {
+        name: "Tools",
         key: "tools",
-        startAngle: 270, 
-        endAngle: 360, 
-        ...ENHANCED_COLORS.quadrants.Tools 
+        startAngle: 270,
+        endAngle: 360,
+        ...ENHANCED_COLORS.quadrants.Tools,
       },
-      { 
-        name: "Platforms", 
+      {
+        name: "Platforms",
         key: "platforms",
-        startAngle: 90, 
-        endAngle: 180, 
-        ...ENHANCED_COLORS.quadrants.Platforms 
+        startAngle: 90,
+        endAngle: 180,
+        ...ENHANCED_COLORS.quadrants.Platforms,
       },
       {
         name: "Languages & Frameworks",
@@ -399,7 +332,9 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
   // Optimized position calculation with seeded randomization
   const calculatePosition = useCallback(
     (item: any, itemsInSameRingQuadrant: any[]): { x: number; y: number } => {
-      const quadrant = quadrants.find((q) => q.name === item.quadrant || q.key === item.quadrant.toLowerCase().replace(/\s+/g, "").replace("&", ""))
+      const quadrant = quadrants.find(
+        (q) => q.name === item.quadrant || q.key === item.quadrant.toLowerCase().replace(/\s+/g, "").replace("&", ""),
+      )
       const ring = rings.find((r) => r.name === item.ring || r.altName === item.ring)
       if (!quadrant || !ring) return { x: center, y: center }
 
@@ -416,14 +351,14 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
       // Convert angles to radians
       const startAngleRad = (quadrant.startAngle * Math.PI) / 180
       const endAngleRad = (quadrant.endAngle * Math.PI) / 180
-      
+
       let angleRange = endAngleRad - startAngleRad
       if (angleRange <= 0) angleRange += 2 * Math.PI
 
       // Base angular position with some controlled randomness
       const usableAngleRange = angleRange * 0.7
       const angleMargin = angleRange * 0.15
-      
+
       let angle
       if (totalItems === 1) {
         // Single item: place with random offset from center
@@ -440,7 +375,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
       const minRadius = ring === rings[0] ? 25 : rings[rings.indexOf(ring) - 1].radius + 15 // Reduced margins
       const maxRadius = ring.radius - 15 // Reduced margins
       const radiusRange = maxRadius - minRadius
-      
+
       // Use MORE of the available radius space - spread items better vertically
       const baseRadius = minRadius + radiusRange * 0.1 + radiusRange * 0.7 * random2 // Increased from 0.4 to 0.7
       const radiusJitter = radiusRange * 0.3 * (random3 - 0.5) // Increased from 0.2 to 0.3
@@ -469,7 +404,9 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
       )
 
       const position = calculatePosition(item, itemsInSameRingQuadrant)
-      const quadrant = quadrants.find((q) => q.key === item.quadrant.toLowerCase().replace(/\s+/g, "").replace("&", "") || q.name === item.quadrant)
+      const quadrant = quadrants.find(
+        (q) => q.key === item.quadrant.toLowerCase().replace(/\s+/g, "").replace("&", "") || q.name === item.quadrant,
+      )
 
       // Use alpha transparency based on ring position
       const baseColor = quadrant?.primary || "#666"
@@ -487,12 +424,24 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
     })
   }, [radarData, calculatePosition, quadrants, getColorByRing])
 
-  // Optimized mouse event handlers
   const handleMouseEnter = useCallback((event: React.MouseEvent, item: RadarItem) => {
+    // Get the SVG element and its bounding rectangle
+    const svgElement = event.currentTarget.closest("svg")
+    if (!svgElement) return
+
+    const svgRect = svgElement.getBoundingClientRect()
+
+    // Calculate mouse position relative to the page
+    const mouseX = event.clientX
+    const mouseY = event.clientY
+
+    // Add offset to position tooltip near the dot but not overlapping
+    const tooltipOffset = 15
+
     setTooltip({
       visible: true,
-      x: event.clientX,
-      y: event.clientY,
+      x: mouseX,
+      y: mouseY - tooltipOffset, // Position above the cursor
       content: {
         name: item.name,
         rationale: item.rationale,
@@ -505,6 +454,23 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
     setTooltip({ visible: false, x: 0, y: 0, content: null })
     setHoveredItem(null)
   }, [])
+
+  const handleMouseMove = useCallback(
+    (event: React.MouseEvent, item: RadarItem) => {
+      if (hoveredItem === item.id) {
+        const mouseX = event.clientX
+        const mouseY = event.clientY
+        const tooltipOffset = 15
+
+        setTooltip((prev) => ({
+          ...prev,
+          x: mouseX,
+          y: mouseY - tooltipOffset,
+        }))
+      }
+    },
+    [hoveredItem],
+  )
 
   const handleClick = useCallback((item: RadarItem) => {
     setSelectedItem(item)
@@ -552,7 +518,16 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
         // Fetch from network
         const response = await fetch(dataUrl)
         if (!response.ok) {
-          throw new Error(`Failed to load radar data: ${response.statusText}`)
+          console.warn(`Radar data file not found at ${dataUrl}. Using props data instead.`)
+          setLoading(false)
+          return
+        }
+
+        const contentType = response.headers.get("content-type")
+        if (!contentType || !contentType.includes("application/json")) {
+          console.warn(`Expected JSON but got ${contentType}. Using props data instead.`)
+          setLoading(false)
+          return
         }
 
         const data = await response.json()
@@ -563,8 +538,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
         setRadarData(data)
         setError(null)
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load radar data")
-        console.error("Error loading radar data:", err)
+        console.warn("Could not load radar data from file:", err)
       } finally {
         setLoading(false)
       }
@@ -585,7 +559,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                   <div className="text-center space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="text-neutral-400 text-base">Generating technology radar...</p>
-                    <p className="text-neutral-600 text-xs">AI agents are researching and analyzing technologies</p>
+                    <p className="text-neutral-600 text-xs">AI agent is researching and analyzing technologies</p>
                   </div>
                 </div>
               </div>
@@ -595,7 +569,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
             <div className="p-4 bg-black rounded-lg border border-neutral-700 flex-shrink-0">
               <h4 className="text-sm font-medium mb-3 text-gray-200">Research in Progress</h4>
               <p className="text-xs text-gray-300 leading-relaxed">
-                Our AI agents are gathering and analyzing the latest technology information for your radar.
+                Finding and evaluating relevant technologies for you...
               </p>
             </div>
             <div className="p-4 bg-black rounded-lg border border-neutral-700 flex-1 flex items-center justify-center">
@@ -621,7 +595,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                       <div className="w-6 h-6 bg-neutral-500 rounded-full"></div>
                     </div>
                     <p className="text-neutral-400 text-base">No radar data available</p>
-                    <p className="text-neutral-600 text-xs">Start building a radar to see technology visualization</p>
+                    <p className="text-neutral-600 text-xs">Start building a radar to see the visualization</p>
                   </div>
                 </div>
               </div>
@@ -699,7 +673,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                         x={positions[index].x}
                         y={positions[index].y}
                         textAnchor="middle"
-                        className="text-sm font-bold transition-all duration-300"
+                        className="text-base font-bold transition-all duration-300"
                         fill={quadrant.primary}
                       >
                         {quadrant.name}
@@ -709,7 +683,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
 
                   {/* Ring labels positioned between ring separations - Right side */}
                   <text
-                    x={300 + (rings[0].radius / 2)}
+                    x={300 + rings[0].radius / 2}
                     y={295}
                     textAnchor="middle"
                     className="text-sm font-bold transition-all duration-300"
@@ -747,7 +721,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
 
                   {/* Ring labels positioned between ring separations - Left side */}
                   <text
-                    x={300 - (rings[0].radius / 2)}
+                    x={300 - rings[0].radius / 2}
                     y={295}
                     textAnchor="middle"
                     className="text-sm font-bold transition-all duration-300"
@@ -813,6 +787,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                           strokeWidth="2"
                           className="cursor-pointer transition-all duration-200 ease-in-out"
                           onMouseEnter={(e) => handleMouseEnter(e, item)}
+                          onMouseMove={(e) => handleMouseMove(e, item)}
                           onMouseLeave={handleMouseLeave}
                           onClick={() => handleClick(item)}
                           opacity={opacity}
@@ -845,16 +820,11 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="h-[700px] overflow-y-auto">
           <div className="space-y-4 h-full flex flex-col">
             {/* Technology Dropdown */}
-            <TechDropdown 
-              processedData={processedData}
-              selectedItem={selectedItem}
-              onTechSelect={handleTechSelect}
-            />
-            
+            <TechDropdown processedData={processedData} selectedItem={selectedItem} onTechSelect={handleTechSelect} />
+
             {selectedItem && (
               <div className="p-4 bg-black rounded-lg border border-neutral-700 flex-shrink-0">
                 <h4 className="text-base font-medium mb-3 text-gray-200">Selected Technology</h4>
@@ -865,8 +835,12 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                       <Badge
                         variant="outline"
                         style={{
-                          color: ENHANCED_COLORS.quadrants[selectedItem.quadrant as keyof typeof ENHANCED_COLORS.quadrants]?.primary,
-                          borderColor: ENHANCED_COLORS.quadrants[selectedItem.quadrant as keyof typeof ENHANCED_COLORS.quadrants]?.primary,
+                          color:
+                            ENHANCED_COLORS.quadrants[selectedItem.quadrant as keyof typeof ENHANCED_COLORS.quadrants]
+                              ?.primary,
+                          borderColor:
+                            ENHANCED_COLORS.quadrants[selectedItem.quadrant as keyof typeof ENHANCED_COLORS.quadrants]
+                              ?.primary,
                         }}
                       >
                         {selectedItem.quadrant}
@@ -883,7 +857,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                     <h4 className="font-semibold text-sm text-gray-300 mb-2">Description</h4>
                     <p className="text-sm text-gray-200 leading-relaxed">{selectedItem.description}</p>
                   </div>
-                  {selectedItem.source_url && !selectedItem.source_url.includes('search-result-') && (
+                  {selectedItem.source_url && !selectedItem.source_url.includes("search-result-") && (
                     <div>
                       <h4 className="font-semibold text-sm text-gray-300 mb-2">Source</h4>
                       <a
@@ -908,13 +882,14 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                 </div>
               </div>
             )}
-            
+
             {/* How to use section - only show when no tech is selected */}
             {!selectedItem && (
               <div className="p-4 bg-black rounded-lg border border-neutral-700 flex-shrink-0">
                 <h3 className="text-lg font-semibold mb-4 text-white">How to use</h3>
                 <p className="text-sm text-gray-300 leading-relaxed">
-                  Click on any technology dot or select from the dropdown above to see detailed information. Hover for quick details.
+                  Click on any technology dot or select from the dropdown above to see detailed information. Hover for
+                  quick details.
                 </p>
               </div>
             )}
@@ -951,7 +926,7 @@ const RadarChart: React.FC<TechRadarProps> = ({ radarData: propRadarData, isLoad
                 <div className="space-y-3 text-sm text-white">
                   <div className="flex justify-between">
                     <span className="text-gray-300 font-bold">Date:</span>
-                    <span className="font-medium">{radarData.generated_date || 'N/A'}</span>
+                    <span className="font-medium">{radarData.generated_date || "N/A"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-300 font-bold">Reflection Loops:</span>

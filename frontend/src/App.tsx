@@ -60,19 +60,25 @@ export default function App() {
         const elementsCount = event.extract_radar_elements?.total_found || 0;
         processedEvent = {
           title: "Extracting Radar Elements",
-          data: `Identified ${elementsCount} technology elements for radar placement.`,
+          data: `Identifying the most relevant elements in the research.`,
         };
       } else if (event.radar_reflection) {
-        const currentCount = event.radar_reflection?.current_count || 0;
-        const targetCount = 25; // Default target, will be overridden by actual value
+        const currentCount = event.radar_reflection?.current_count || 
+                           event._reflection_current_count || 
+                           (event.radar_elements ? event.radar_elements.length : 0);
+        const targetCount = event.radar_reflection?.target_count || 
+                          event.target_element_count || 25;
         processedEvent = {
           title: "Analyzing Radar Completeness",
-          data: `Found ${currentCount}/${targetCount} elements. Evaluating coverage gaps.`,
+          data: `Rating elements and evaluating gaps in coverage.`,
         };
       } else if (event.finalize_radar) {
+        const totalElements = event.finalize_radar?.total_elements || 
+                            event.radar_elements?.length || 
+                            (event.radar_json && event.radar_json.total_elements) || 0;
         processedEvent = {
           title: "Finalizing Tech Radar",
-          data: "Generating comprehensive radar report and structured dataset.",
+          data: `Generating radar report.`,
         };
         hasFinalizeEventOccurredRef.current = true;
       }

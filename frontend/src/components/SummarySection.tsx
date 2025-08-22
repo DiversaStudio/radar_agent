@@ -26,11 +26,11 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 flex items-center gap-3">
                 <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-                Research Summary & Analysis
+                Research Report
               </h2>
               <p className="text-neutral-400 text-sm sm:text-base">
                 {isLoading 
-                  ? "AI agents are generating comprehensive analysis..."
+                  ? "AI agent is getting insights and preparing the report..."
                   : "Generate a technology radar to see detailed analysis and insights"
                 }
               </p>
@@ -64,9 +64,9 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
                   <div className="flex flex-col items-center gap-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                     <div className="space-y-2">
-                      <p className="text-neutral-300 text-base sm:text-lg">Generating detailed analysis...</p>
+                      <p className="text-neutral-300 text-base sm:text-lg">Generating insights...</p>
                       <p className="text-neutral-500 text-sm">
-                        AI agents are researching technologies and preparing comprehensive insights
+                        AI agent is evaluating technologies and preparing the report
                       </p>
                     </div>
                   </div>
@@ -78,7 +78,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
                     <div className="space-y-2">
                       <p className="text-neutral-300 text-base sm:text-lg">No analysis available</p>
                       <p className="text-neutral-500 text-sm">
-                        Start building a technology radar to see AI-powered research summary, strategic insights, and downloadable reports
+                        Start building a technology radar to see AI-powered research summary, strategic insights, and downloadable report
                       </p>
                     </div>
                   </div>
@@ -166,40 +166,40 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
     try {
       const pageWidth = doc.internal.pageSize.getWidth();
       
-      // Add ultra-slim colored background header
-      const headerHeight = 18; // Ultra-slim header
-      doc.setFillColor(38, 38, 38); // #262626 color to match page sections
+      // Add header with app-matching background color
+      const headerHeight = 22; // Slightly taller header for better proportions
+      doc.setFillColor(15, 15, 15); // #0f0f0f color to match app header exactly
       doc.rect(0, 0, pageWidth, headerHeight, 'F');
       
       // Try to add logo
       try {
         const logoDataURL = await addLogoToHeader();
         
-        // Smaller logo with increased width
-        const logoSize = 6; // Height remains 6px
-        const logoWidth = 8; // Width increased by 2px (from 6px to 8px)
-        const logoX = pageWidth - logoWidth - 10; // Right side with small margin
-        const logoY = (headerHeight - logoSize) / 2; // Center vertically in header
+        // Reduced logo size for better proportions with text
+        const logoHeight = 8; // Reduced from 10 to 8 for better balance
+        const logoWidth = 10; // Reduced from 12 to 10 to maintain good proportions
+        const logoX = pageWidth - logoWidth - 12; // Right side with proper margin
+        const logoY = (headerHeight - logoHeight) / 2; // Center vertically in header
         
-        doc.addImage(logoDataURL, 'PNG', logoX, logoY, logoWidth, logoSize);
+        doc.addImage(logoDataURL, 'PNG', logoX, logoY, logoWidth, logoHeight);
         console.log('Logo added to PDF header successfully');
       } catch (logoError) {
         console.warn('Failed to add logo to header:', logoError);
         
         // Text fallback - add "DIVERSA" text in the logo position
-        doc.setFontSize(10); // Match main title font size
+        doc.setFontSize(14); // Match increased main title font size
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(255, 255, 255);
         const fallbackText = "DIVERSA";
-        const fallbackX = pageWidth - 40;
-        doc.text(fallbackText, fallbackX, headerHeight / 2 + 1); // Align with main title text
+        const fallbackX = pageWidth - 45;
+        doc.text(fallbackText, fallbackX, headerHeight / 2 + 2); // Align with main title text
       }
       
-      // Add title text on the left side - reduce size by 1pt
-      doc.setFontSize(9); // Reduced from 10pt to 9pt
+      // Add title text on the left side - increased font size for better prominence
+      doc.setFontSize(14); // Increased from 12pt to 14pt for better visual balance
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(255, 255, 255);
-      doc.text('Generative Tech Radar Report', 10, headerHeight / 2 + 1); // Moved up to align with logo center
+      doc.text('Generative Tech Radar Report', 12, headerHeight / 2 + 2); // Centered vertically with proper margin
       
       // Reset text color for document body
       doc.setTextColor(0, 0, 0);
@@ -208,6 +208,150 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
       console.error('Error adding header:', error);
       // Continue without header if there's an error
     }
+  };
+
+  // Function to justify text manually since jsPDF doesn't support justify alignment
+  const justifyText = (doc: jsPDF, text: string, x: number, y: number, maxWidth: number) => {
+    const words = text.trim().split(' ');
+    if (words.length <= 1) {
+      doc.text(text, x, y);
+      return;
+    }
+
+    // Calculate total text width without extra spaces
+    const textWidth = doc.getTextWidth(words.join(' '));
+    
+    // If text is already close to max width, don't justify
+    if (textWidth >= maxWidth * 0.85) {
+      doc.text(text, x, y);
+      return;
+    }
+
+    // Calculate extra space to distribute
+    const extraSpace = maxWidth - textWidth;
+    const gaps = words.length - 1;
+    const spacePerGap = extraSpace / gaps;
+
+    // Draw each word with calculated spacing
+    let currentX = x;
+    for (let i = 0; i < words.length; i++) {
+      doc.text(words[i], currentX, y);
+      if (i < words.length - 1) {
+        currentX += doc.getTextWidth(words[i]) + doc.getTextWidth(' ') + spacePerGap;
+      }
+    }
+  };
+
+  // Function to process Markdown text for PDF formatting
+  const processMarkdownForPDF = (text: string, doc: jsPDF, startY: number, pageWidth: number, pageHeight: number, margin: number, lineHeight: number) => {
+    let yPosition = startY;
+    const lines = text.split('\n');
+    
+    for (let line of lines) {
+      // Skip empty lines but add spacing
+      if (line.trim() === '') {
+        yPosition += lineHeight * 0.5;
+        continue;
+      }
+      
+      // Check for page break
+      if (yPosition + lineHeight > pageHeight - margin) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      // Process different markdown elements
+      if (line.startsWith('# ')) {
+        // Main heading (H1)
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        const headingText = line.substring(2);
+        doc.text(headingText, margin, yPosition);
+        yPosition += lineHeight * 1.3; // Reduced from 1.8 to 1.3
+        
+      } else if (line.startsWith('## ')) {
+        // Sub heading (H2)
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        const headingText = line.substring(3);
+        doc.text(headingText, margin, yPosition);
+        yPosition += lineHeight * 1.2; // Reduced from 1.5 to 1.2
+        
+      } else if (line.startsWith('### ')) {
+        // Sub-sub heading (H3)
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        const headingText = line.substring(4);
+        doc.text(headingText, margin, yPosition);
+        yPosition += lineHeight * 1.1; // Reduced from 1.3 to 1.1
+        
+      } else if (line.startsWith('**') && line.endsWith('**')) {
+        // Bold text
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        const boldText = line.substring(2, line.length - 2);
+        const wrappedLines = doc.splitTextToSize(boldText, pageWidth - 2 * margin);
+        for (const wrappedLine of wrappedLines) {
+          if (yPosition + lineHeight > pageHeight - margin) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(wrappedLine, margin, yPosition);
+          yPosition += lineHeight;
+        }
+        
+      } else if (line.startsWith('- ') || line.startsWith('• ')) {
+        // Bullet points
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        const bulletText = line.startsWith('- ') ? line.substring(2) : line.substring(2);
+        const wrappedLines = doc.splitTextToSize(`• ${bulletText}`, pageWidth - 2 * margin);
+        for (const wrappedLine of wrappedLines) {
+          if (yPosition + lineHeight > pageHeight - margin) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(wrappedLine, margin + 5, yPosition);
+          yPosition += lineHeight;
+        }
+        
+      } else {
+        // Regular paragraph text - with custom justification
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        
+        // Handle bold text within paragraphs
+        let processedLine = line;
+        const boldPattern = /\*\*(.*?)\*\*/g;
+        
+        // For now, just remove markdown bold formatting in regular text
+        // (More complex inline formatting would require more sophisticated parsing)
+        processedLine = processedLine.replace(boldPattern, '$1');
+        
+        const wrappedLines = doc.splitTextToSize(processedLine, pageWidth - 2 * margin);
+        for (let i = 0; i < wrappedLines.length; i++) {
+          if (yPosition + lineHeight > pageHeight - margin) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          
+          const wrappedLine = wrappedLines[i];
+          // Apply custom justification for all lines except the last line of a paragraph
+          const isLastLineOfParagraph = i === wrappedLines.length - 1;
+          
+          if (!isLastLineOfParagraph && wrappedLine.trim().length > 0) {
+            // Use custom justification
+            justifyText(doc, wrappedLine, margin, yPosition, pageWidth - 2 * margin);
+          } else {
+            // Left align the last line of paragraph or short lines
+            doc.text(wrappedLine, margin, yPosition);
+          }
+          yPosition += lineHeight;
+        }
+      }
+    }
+    
+    return yPosition;
   };
 
   const handleDownloadSummary = async () => {
@@ -226,47 +370,13 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 20;
     const lineHeight = 7;
-    let yPosition = 35; // Adjusted for 18px ultra-slim header + margin
+    let yPosition = 35; // Reduced spacing after header banner
 
-    // Title
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    const title = `${radarData.topic} Tech Radar`;
-    doc.text(title, margin, yPosition);
-    yPosition += lineHeight * 2;
-
-    // Metadata
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Generated: ${radarData.generated_date} at ${radarData.generated_time}`, margin, yPosition);
-    yPosition += lineHeight;
-    doc.text(`Total Technologies: ${radarData.total_elements}`, margin, yPosition);
-    yPosition += lineHeight;
-    doc.text(`Reflection Loops: ${radarData.research_metadata.research_loops} | Sources: ${radarData.research_metadata.sources_analyzed}`, margin, yPosition);
-    yPosition += lineHeight * 2;
-
-    // Summary section
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Research Summary & Analysis', margin, yPosition);
-    yPosition += lineHeight * 1.5;
-
-    // Process summary text
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
+    // Process summary text with Markdown formatting (no additional titles or metadata)
     const summaryText = radarData.summary_report;
-    const lines = doc.splitTextToSize(summaryText, pageWidth - 2 * margin);
-    
-    for (let i = 0; i < lines.length; i++) {
-      if (yPosition + lineHeight > pageHeight - margin) {
-        doc.addPage();
-        yPosition = margin;
-      }
-      doc.text(lines[i], margin, yPosition);
-      yPosition += lineHeight;
-    }
+    yPosition = processMarkdownForPDF(summaryText, doc, yPosition, pageWidth, pageHeight, margin, lineHeight);
 
-    // Add technology list
+    // Add spacing after summary
     yPosition += lineHeight;
     if (yPosition + lineHeight > pageHeight - margin) {
       doc.addPage();
@@ -360,10 +470,10 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2 flex items-center gap-3">
               <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500" />
-              Research Summary & Analysis
+              Research Report
             </h2>
             <p className="text-neutral-400 text-sm sm:text-base">
-              Comprehensive analysis and strategic insights from the AI research process
+              Technology trends and strategic recommendations
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -398,9 +508,6 @@ export const SummarySection: React.FC<SummarySectionProps> = ({ radarData, isLoa
 
         {/* Summary Content */}
         <Card className="bg-black border-neutral-700">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base sm:text-lg text-white">AI-Generated Report</CardTitle>
-          </CardHeader>
           <CardContent>
             <ScrollArea className="h-64 sm:h-96 w-full">
               <div className="prose prose-invert prose-sm sm:prose-base max-w-none">
